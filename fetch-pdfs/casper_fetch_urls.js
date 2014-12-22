@@ -14,10 +14,11 @@ casper.start(url, function() {
 });
 
 casper.then(function getLinks(){
+    // Brand is an array, 0 is brand name, 1 is relative URL: e.g.
+    // Silbreak*&nbsp;(28),/Products/selectorresults.aspx?taxids=1813&sort=Ascending
     brands = this.evaluate(function(){
         var brands = document.querySelectorAll('a.selectorLandingItemLink');
         brands = Array.prototype.map.call(brands,function(link){
-            //return link.getAttribute('href');
             return [ link.innerHTML, link.getAttribute('href')];
         });
         return brands;
@@ -26,19 +27,27 @@ casper.then(function getLinks(){
 
 casper.then(function(){
     this.each(brands,function(self,brand){
-        this.echo(brand);
+        this.echo( brand);
         link = "http://www.momentive.com" + brand[1]
         self.thenOpen(link,function(a){
             var products = this.evaluate(function(){
-                var products = document.querySelectorAll('a.msds','a.searchResultLink');
+                var results = document.querySelectorAll('.searchResultBlock');
+                results = Array.prototype.map.call(results,function(link){
+                    url = link.querySelector('a.msds').getAttribute('href');
+                    name = link.querySelector('p.title-info > a.searchResultLink').innerHTML;
 
-                products = Array.prototype.map.call(products,function(link){
-                    return link.getAttribute('href');
+                    return [name,url] ;
                 });
-                return products;
+                return results;
+
+
             });
             this.echo(products.join('\n'));
+            //this.echo(products);
+            //fs.write(save, '\n' + products, 'a');
             fs.write(save, '\n' + products.join('\n'), 'a');
+
+
         });
     });
 });
