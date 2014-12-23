@@ -10,12 +10,12 @@ var casper = require('casper').create({
 var fs = require('fs');
 var url = "http://www.google.com";
 
-groupLink =   [ "Segment", "http://www.momentive.com/products/SelectorLanding.aspx?tid=1211"];
-//groupLink = ["Brand", "http://www.momentive.com/products/SelectorLanding.aspx?tid=1792"];
-//groupLink = ["Brand","http://www.momentive.com/products/SelectorLanding.aspx?tid=1792"];
-//groupLink = ["Industry","http://www.momentive.com/products/SelectorLanding.aspx?tid=1172"];
-//groupLink = ["Application","http://www.momentive.com/products/SelectorLanding.aspx?tid=1033"];
-//groupLink = ["Process","http://www.momentive.com/products/SelectorLanding.aspx?tid=1728"];
+if (casper.cli.args.length === 0 ) {
+    casper.echo('No args passed. \n Usage: casperJS casper_fetch_urls.js "Segment" "http://www.momentive.com/products/SelectorLanding.aspx?tid=1211"').exit();
+}
+
+
+groupLink = [casper.cli.get(0),casper.cli.get(1)]
 
 casper.start(url, function () {
     this.echo(this.getTitle());
@@ -26,7 +26,7 @@ casper.start(url, function () {
 var group = groupLink[0];
 var fname = group + ".csv";
 var save = fs.pathJoin(fs.workingDirectory, fname);
-fs.write(save, group + "," + group + "URL, Product, ProductURL");
+fs.write(save, '"' + group + '","' + group + 'Url","product","productUrl"');
 
 var brands = [];
 casper.thenOpen(groupLink[1], brands, function () { // open that link
@@ -34,7 +34,8 @@ casper.thenOpen(groupLink[1], brands, function () { // open that link
     brands = brands.concat(this.evaluate(function () {
         var brands = document.querySelectorAll('a.selectorLandingItemLink');
         brands = Array.prototype.map.call(brands, function (link) {
-            return [  link.innerHTML, link.getAttribute('href')];
+            var re = /(.*)&nbsp;.*/g
+            return [ '"' +  link.innerHTML.replace(re,'$1') + '"',  link.getAttribute('href') ];
         });
         return brands;
     }));
@@ -67,7 +68,7 @@ casper.then(function () {
 
                 // Add the Brand to each product
                 for (var i = 0; i < products.length; i++) {
-                    products[i] = brand + ',' + products[i];
+                    products[i] =  'http://www.momentive.com' + brand + ',' + products[i];
                 }
                 fs.write(save, '\n' + products.join('\n'), 'a');
             }else {
@@ -80,14 +81,10 @@ casper.then(function () {
 casper.then(function () {
     // echo results in some pretty fashion
     this.echo(brands.length + ' brands found:');
-    this.echo('\n - ' + brands).exit();
-
 });
 
 
 casper.run(function () {
-    // echo results in some pretty fashion
-    this.echo(groupLinks.length + ' groups done:');
 
     this.exit();
 });
