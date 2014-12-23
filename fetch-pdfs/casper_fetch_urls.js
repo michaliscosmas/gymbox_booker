@@ -3,19 +3,21 @@
  * User: michalis_RAVN
  * Date: 18/12/2014
  */
-var casper = require('casper').create();
+var casper = require('casper').create({
+    verbose: true,
+    logLevel: "debug"
+});
 var fs = require('fs');
-var url = "www.google.com";
+var url = "http://www.google.com";
 
-links = [ //brand
-   [ "Segment","http://www.momentive.com/products/SelectorLanding.aspx?tid=1211"  ] ,["Brand","http://www.momentive.com/products/SelectorLanding.aspx?tid=1792"]]   //segments
+links = [[ "Segment","http://www.momentive.com/products/SelectorLanding.aspx?tid=1211"]];
+//links = [ ["Brand","http://www.momentive.com/products/SelectorLanding.aspx?tid=1792"]]
 
 
 for (var i = 0; i < links.length; i++) // for every link...
 {
     casper.start(url, links, function() {
         this.echo(this.getTitle());
-
     });
 
     // Create output file and header
@@ -38,7 +40,10 @@ for (var i = 0; i < links.length; i++) // for every link...
 
     casper.then( function(){
         casper.each(brands,function(self,brand){
-            this.echo( ' \t \t ' + brand);
+            casper.then(function() {
+                    this.echo(' \t \t ' + brand);
+                }
+            );
             // Hack to show all the products on one page (ps=1000)
             link = "http://www.momentive.com" + brand[1] + "&ps=1000"
             self.thenOpen(link,brand,function(a){
