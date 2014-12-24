@@ -26,36 +26,38 @@ casper.start(url, function () {
 var group = groupLink[0];
 var fname = group + ".csv";
 var save = fs.pathJoin(fs.workingDirectory, fname);
-fs.write(save, '"' + group + '","' + group + 'Url","product","productUrl"');
+fs.write(save, '"name","itemUrl","product","productUrl"');
 
-var brands = [];
-casper.thenOpen(groupLink[1], brands, function () { // open that link
+var groups = [];
+casper.thenOpen(groupLink[1], groups, function () { // open that link
     console.log(this.getTitle() + '\n'); // display the title of page
-    brands = brands.concat(this.evaluate(function () {
-        var brands = document.querySelectorAll('a.selectorLandingItemLink');
-        brands = Array.prototype.map.call(brands, function (link) {
-            var re = /(.*)&nbsp;.*/g
-            return [ '"' +  link.innerHTML.replace(re,'$1') + '"',  link.getAttribute('href') ];
+    groups = groups.concat(this.evaluate(function () {
+        var groups = document.querySelectorAll('a.selectorLandingItemLink');
+        groups = Array.prototype.map.call(groups, function (link) {
+            // Regex to remove the count after the group name e.g. (10)
+            var re = /(.*)\(.*\)/g
+            // Return the group Name and the Link (which is relative so adding domain)
+            return [ '"' +   link.firstChild.nodeValue.replace(re,'$1').trim() + '"',  "http://www.momentive.com" + link.getAttribute('href') ];
         });
-        return brands;
+        return groups;
     }));
 });
 
 casper.then(function () {
-    casper.each(brands, function (self, brand) {
+    casper.each(groups, function (self, brand) {
         casper.then(function () {
                 this.echo(' \t \t ' + brand);
             }
         );
         // Hack to show all the products on one page (ps=1000)
-        link = "http://www.momentive.com" + brand[1] + "&ps=1000";
+        link =  brand[1] + "&ps=1000";
         self.thenOpen(link, brand, function (a) {
 
             // Find links present on this page
             var products = this.evaluate(function() {
                 var links = [];
                 Array.prototype.forEach.call(__utils__.findAll('.searchResultBlock'), function(e) {
-                    name = e.querySelector('p.title-info > a.searchResultLink').innerHTML;
+                    name = e.querySelector('p.title-info > a.searchResultLink').firstChild.nodeValue.trim();
                     url = e.querySelector('a.msds').getAttribute('href');
                     links.push([ name ? name : "NA" , url? url : "NA"   ]);
                 });
@@ -68,7 +70,7 @@ casper.then(function () {
 
                 // Add the Brand to each product
                 for (var i = 0; i < products.length; i++) {
-                    products[i] =  'http://www.momentive.com' + brand + ',' + products[i];
+                    products[i] =  brand + ',' + products[i];
                 }
                 fs.write(save, '\n' + products.join('\n'), 'a');
             }else {
@@ -80,7 +82,7 @@ casper.then(function () {
 
 casper.then(function () {
     // echo results in some pretty fashion
-    this.echo(brands.length + ' brands found:');
+    this.echo(groups.length + ' groups found:');
 });
 
 
