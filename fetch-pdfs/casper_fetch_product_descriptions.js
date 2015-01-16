@@ -52,7 +52,6 @@ casper.then(function () {
         // Hack to show all the products on one page (ps=1000)
         link =  brand[1] + "&ps=1000";
         self.thenOpen(link, brand, function (a) {
-
             // Find links present on this page
             var links = this.evaluate(function() {
                 var links = [];
@@ -67,20 +66,22 @@ casper.then(function () {
 
             // Open each link and extract the description for each product
             // Output product name / description
+            this.echo('\t' + links.join('\n\t'));
+            casper.each(links, function (self, link) {
+                casper.then(function () {
+                    this.echo('\t \t Following ' + link);
+                });
+                casper.then(function () {
 
-
-            var products = []
-            if (products != null) {
-                this.echo('\t' + products.join('\n\t'));
-
-                // Add the Brand to each product
-                for (var i = 0; i < products.length; i++) {
-                    products[i] =  brand + ',' + products[i];
-                }
-                fs.write(save, '\n' + products.join('\n'), 'a');
-            }else {
-                this.echo("********************NO PRODUCTS************************");
-            }
+                    self.thenOpen(link,function(a) {
+                    var desc = this.evaluate(function(){
+                        return __utils__.findOne('#product-detail').innerHTML;
+                    })
+                    this.echo(desc);
+                    alert(desc);
+                });
+                });
+            });
         });
     });
 });
