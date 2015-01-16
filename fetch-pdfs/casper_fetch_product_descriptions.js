@@ -74,12 +74,13 @@ casper.then(function () {
                 casper.then(function () {
 
                     self.thenOpen(link,function(a) {
-                    var desc = this.evaluate(function(){
-                        return __utils__.findOne('#product-detail').innerHTML;
-                    })
-                    this.echo(desc);
-                    alert(desc);
-                });
+
+                        var desc = this.evaluate(function(){
+                            return [__utils__.findOne('.selector-hl').innerHTML.replace(/<!--(.*?)-->/gm, "").trim(),
+                                    __utils__.findOne('#product-detail').innerHTML.trim()];
+                        })
+                        this.echo(desc);
+                    });
                 });
             });
         });
