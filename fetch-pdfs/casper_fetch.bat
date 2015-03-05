@@ -1,5 +1,0 @@
-casperJS casper_fetch_urls.js "segment" "http://www.momentive.com/products/SelectorLanding.aspx?tid=1211"
-casperJS casper_fetch_urls.js "brand" "http://www.momentive.com/products/SelectorLanding.aspx?tid=1792"
-casperJS casper_fetch_urls.js "industry" "http://www.momentive.com/products/SelectorLanding.aspx?tid=1172"
-casperJS casper_fetch_urls.js "application" "http://www.momentive.com/products/SelectorLanding.aspx?tid=1033"
-casperJS casper_fetch_urls.js "process" "http://www.momentive.com/products/SelectorLanding.aspx?tid=1728"
